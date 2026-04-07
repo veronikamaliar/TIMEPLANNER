@@ -1,8 +1,7 @@
 const express = require('express');
 const { uploadFile, getFile, deleteFile } = require('../controllers/fileController');
 const { authenticate } = require('../middleware/auth');
-const { upload } = require('../middleware/upload');
-
+const upload = require('../middleware/multer');
 const router = express.Router();
 
 /**

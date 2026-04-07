@@ -24,6 +24,8 @@ const app = express();
 const server = http.createServer(app); 
 const io = initSocket(server, process.env.FRONTEND_URL);
 
+const path = require('path');
+
 
 // MIDDLEWARE
 
@@ -132,6 +134,9 @@ app.use('/api/files', fileRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use('/api/dashboard', require('./routes/dashboardRoutes'))
 app.use('/api/admin', adminRoutes)
+
+
+app.use('/uploads', express.static('uploads'));
 
 // Базовий маршрут
 app.get("/", (req, res) => {

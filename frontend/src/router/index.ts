@@ -22,6 +22,12 @@ import TaskUpdatePage from '@/pages/TaskUpdatePage.vue'
 import CategoryUpdatePage from '@/pages/CategoryUpdatePage.vue'
 import UserUpdatePage from '@/pages/UserUpdatePage.vue'
 
+import EisenhowerMatrix from '@/pages/EisenhowerMatrix.vue'
+
+import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+
+import AccountEdit from '@/pages/AccountEdit.vue'
+
 const routes = [
   { path: '/main', component: MainPage },
   { path: '/calendar', component: CalendarPage },
@@ -34,7 +40,7 @@ const routes = [
   component: DashboardPage, 
     redirect: '/dashboard/board',
   children: [
-    { path: '/', redirect: '/dashboard' },
+    { path: '/', redirect: '/login' },
     { path: 'board', component: Board },
     { path: 'users', component: UsersListPage },
     { path: 'users/update/:id', component: UserUpdatePage },
@@ -44,9 +50,13 @@ const routes = [
     { path: 'categories', component: CategoriesListPage },
     { path: 'categories/create', component: CategoryCreatePage },
     { path: 'categories/update/:id', component: CategoryUpdatePage },
+    { path: 'calendar', component: CalendarPage },
+    { path: 'eisenhowermatrix', component: EisenhowerMatrix},
+  { path: 'account', component: AccountPage },
+  { path: 'account/edit', component: AccountEdit },
   ],
   meta: { requiresAuth: true }
-},
+  },
 
   { path: '/:pathMatch(.*)*', component: NotFoundPage } 
 ]

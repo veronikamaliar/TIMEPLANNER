@@ -1,3 +1,4 @@
+const upload = require("../middleware/multer");
 const express = require("express");
 const { body, param } = require("express-validator");
 const {
@@ -268,14 +269,14 @@ router.post("/", authenticate, authorize("ADMIN"), createUserValidation, createU
  *       404:
  *         description: Користувача не знайдено
  */
+ 
+
 router.put(
-  "/:id",
-  param("id").isInt(),
-  authenticate,
-  authorize("ADMIN"),
-  updateUserValidation,
+  "/:id", 
+  authenticate, 
+  upload.single('avatar'), // На фронтенді ми робимо formData.append('avatar', ...)
   updateUser
-)
+);
 
 /**
  * @swagger

@@ -133,7 +133,7 @@ const changePassword = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: req.user.userId },
+      where: { id: req.user.id }, // ← було req.user.userId
     });
 
     if (!user) {
@@ -276,6 +276,35 @@ async function resetPassword(req, res) {
     }
 }
 
+async function getMe(req, res) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        birthDate: true,
+        avatar: true,
+        createdAt: true,
+        _count: {
+          select: {
+            tasks: true,
+            timelogs: true,
+          }
+        }
+      }
+    })
+
+    if (!user) return res.status(404).json({ error: 'Користувача не знайдено' })
+
+    res.json(user)
+  } catch (error) {
+    console.error('getMe error:', error)
+    res.status(500).json({ error: 'Помилка сервера' })
+  }
+}
 
 module.exports = {
     register,
@@ -283,5 +312,5 @@ module.exports = {
     changePassword,
     refreshToken,
     forgotPassword,
-    resetPassword
+    resetPassword,
 };

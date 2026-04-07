@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import socketService from '@/services/socket.service'
 
+
 const categoriesStore = useCategoriesStore()
 const router = useRouter()
 
@@ -62,9 +63,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <ErrorMessage :message="categoriesStore.error ?? undefined" />
-  <div class="max-w-4xl mx-auto p-6">
-    
+  <ErrorMessage :message="categoriesStore.error ?? undefined" />
+  
+  <div class="max-w-full">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">Категорії</h1>
       <Button variant="primary" @click="addCategory">
@@ -79,47 +80,52 @@ onUnmounted(() => {
       class="mb-4 max-w-sm"
     />
 
-    <div v-if="categoriesStore.loading" class="text-center py-6">
+    <div v-if="categoriesStore.loading" class="text-center py-6 text-gray-500">
       Завантаження...
     </div>
 
-    <div v-if="categoriesStore.error" class="text-red-500 mb-4">
-      {{ categoriesStore.error }}
+
+    
+    <div v-else class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+
+            
+
+            <tr>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 whitespace-nowrap">Назва</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 whitespace-nowrap">Дії</th>
+            </tr>
+
+
+          </thead>
+
+          <tbody class="divide-y divide-gray-200">
+            <tr 
+              v-for="cat in displayedCategories" 
+              :key="cat.id" 
+              class="hover:bg-gray-50 transition-colors"
+            >
+              <td class="px-4 py-2 whitespace-nowrap">{{ cat.name }}</td>
+              <td class="px-4 py-2 text-right space-x-2 whitespace-nowrap">
+                <Button class="my-1" size="sm" variant="secondary" @click="editCategory(cat.id)">
+                  Редагувати
+                </Button>
+                <Button size="sm" variant="danger" @click="deleteCategory(cat.id)">
+                  Видалити
+                </Button>
+              </td>
+            </tr>
+
+            <tr v-if="displayedCategories.length === 0">
+              <td colspan="2" class="px-4 py-6 text-center text-gray-500 font-medium">
+                Категорій не знайдено
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-
-    <table
-      v-if="!categoriesStore.loading"
-      class="min-w-full text-sm bg-white rounded-lg shadow"
-    >
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-2 text-left">Назва</th>
-          <th class="px-4 py-2 text-right">Дії</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="cat in displayedCategories"
-          :key="cat.id"
-          class="border-t"
-        >
-          <td class="px-4 py-2">{{ cat.name }}</td>
-          <td class="px-4 py-2 text-right space-x-2">
-            <Button size="sm" variant="secondary" @click="editCategory(cat.id)">
-              Редагувати
-            </Button>
-            <Button size="sm" variant="danger" @click="deleteCategory(cat.id)">
-              Видалити
-            </Button>
-          </td>
-        </tr>
-
-        <tr v-if="displayedCategories.length === 0">
-          <td colspan="3" class="text-center py-4 text-gray-500">
-            Категорій не знайдено
-          </td>
-        </tr>
-      </tbody>
-    </table>
   </div>
 </template>

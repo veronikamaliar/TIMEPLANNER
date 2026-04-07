@@ -129,38 +129,42 @@ const createUser = async (req, res) => {
 // Оновити користувача
 const updateUser = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
     const { id } = req.params;
-    const { name, email, birthDate, password } = req.body;
+    const { name, email, birthDate } = req.body;
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (birthDate) updateData.birthDate = new Date(birthDate);
+
+    if (req.file) {
+      // Видалити старий аватар
+      const oldUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+      if (oldUser?.avatar) {
+        const fs = require('fs').promises;
+        await fs.unlink(oldUser.avatar).catch(() => {});
+      }
+      updateData.avatar = req.file.path.replace(/\\/g, '/');
+    }
 
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
-      data: { name, email, birthDate, password },
-      include: { _count: { select: { tasks: true, timelogs: true } } },
+      data: updateData,
+      select: {        // ← додай select щоб не повертати пароль
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        birthDate: true,
+        avatar: true,
+        createdAt: true,
+      }
     });
 
-    const userWithCount = {
-      ...user,
-      taskCount: user._count.tasks,
-      timelogCount: user._count.timelogs,
-    };
-
-    res.json({
-      message: "User updated successfully",
-      user: userWithCount,
-    });
+    res.json({ message: 'Користувача оновлено', user });
   } catch (error) {
-    console.error("Update user error:", error);
-
-    if (error.code === "P2025") return res.status(404).json({ error: "User not found" });
-
-    if (error.code === "P2002" && error.meta?.target?.includes("email")) {
-      return res.status(400).json({ error: "User with this email already exists" });
-    }
-
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Update error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

@@ -1,100 +1,217 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import axios from "axios";
-
-import DayCard from '@/components/common/DayCard.vue';
+import { ref, onMounted } from 'vue';
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import api from '@/services/api';
 
 interface Task {
   id: number;
   title: string;
-  dueDate: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  description?: string;
+  priority?: string;
+  dueDate?: string;
   completed: boolean;
+  timeSpent?: string;
+  attachment?: string;
+  category?: { id: number; name: string } | null;
 }
 
-const today = new Date();
-const year = today.getFullYear();
-const month = today.getMonth();
+const selectedTask = ref<Task | null>(null);
+const isModalOpen = ref(false);
 
-const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
-const daysInMonth = new Date(year, month + 1, 0).getDate();
+const priorityConfig: Record<string, { label: string; class: string }> = {
+  LOW:    { label: 'Низький',   class: 'bg-green-100 text-green-700' },
+  MEDIUM: { label: 'Середній', class: 'bg-yellow-100 text-yellow-700' },
+  HIGH:   { label: 'Високий',  class: 'bg-red-100 text-red-700' },
+};
 
-const calendarDays = computed(() => {
-  const arr: (number | null)[] = [];
-  for (let i = 0; i < firstDay; i++) arr.push(null);
-  for (let i = 1; i <= daysInMonth; i++) arr.push(i);
-  return arr;
+const calendarOptions = ref({
+  plugins: [dayGridPlugin, interactionPlugin],
+  initialView: 'dayGridMonth',
+  height: 'auto',
+  locale: 'uk',
+  buttonText: {
+    today: 'Сьогодні',
+    month: 'Місяць',
+    week: 'Тиждень',
+  },
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,dayGridWeek', 
+  },
+  events: [] as any[],
+  eventClick: handleEventClick,
 });
 
-const monthNames = [
-  'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-  'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
-];
-
-const tasks = ref<Task[]>([]);
 
 async function loadTasks() {
   try {
-    const res = await axios.get("http://localhost:3000/api/tasks");
-    tasks.value = res.data.data.map((t: any) => ({
-      id: t.id,
-      title: t.title,
-      dueDate: t.dueDate,
-      priority: t.priority,
-      completed: t.completed,
-    }));
+    const res = await api.get('/tasks'); 
+    const tasks: Task[] = res.data.data;
+
+    const mapped = tasks
+      .filter(t => t.dueDate)
+      .map(t => ({
+        id: t.id,
+        title: t.title,
+        date: t.dueDate!.split('T')[0],
+        extendedProps: t,
+        color: t.completed ? '#6b7280' : getPriorityColor(t.priority),
+      }));
+
+    calendarOptions.value = { ...calendarOptions.value, events: mapped };
   } catch (err) {
-    console.error("Error loading tasks:", err);
+    console.error('Error loading tasks:', err);
   }
 }
 
-onMounted(loadTasks);
-
-const selectedDay = ref<number | null>(null);
-const sidebarOpen = ref(false);
-
-function openSidebar(day: number) {
-  selectedDay.value = day;
-  sidebarOpen.value = true;
+function getPriorityColor(priority?: string) {
+  const colors: Record<string, string> = {
+    HIGH:   '#ef4444',
+    MEDIUM: '#f59e0b',
+    LOW:    '#3b82f6',
+  };
+  return colors[priority ?? ''] ?? '#3b82f6';
 }
 
-const tasksByDay = (day: number) =>
-  tasks.value.filter(t => {
-    const d = new Date(t.dueDate);
-    return (
-      d.getFullYear() === year &&
-      d.getMonth() === month &&
-      d.getDate() === day
-    );
-  });
+function handleEventClick(info: any) {
+  selectedTask.value = { id: info.event.id, title: info.event.title, ...info.event.extendedProps };
+  isModalOpen.value = true;
+}
 
+function closeModal() {
+  isModalOpen.value = false;
+  selectedTask.value = null;
+}
 
+function formatDate(date?: string) {
+  if (!date) return '—';
+  return new Date(date).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+onMounted(loadTasks);
 </script>
 
 <template>
-  <div class="calendar-container max-w-5xl mx-auto p-4">
-    <h2 class="text-2xl font-bold mb-4 text-center">
-      {{ monthNames[month] }} {{ year }}
-    </h2>
-
-    <div class="grid grid-cols-7 gap-2">
-      <div v-for="(day, index) in calendarDays" :key="index">
-        <DayCard
-          v-if="day"
-          :day-number="day"
-          :tasks="tasksByDay(day)"
-          :is-today="day === today.getDate()"
-          @click.native="openSidebar(day)"
-        />
-        <div v-else class="bg-transparent h-32 rounded"></div>
-      </div>
-    </div>
-
+  <div class="max-w-6xl mx-auto p-4">
+    <FullCalendar :options="calendarOptions" />
   </div>
+
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50" @click="closeModal" />
+
+        <!-- Вікно -->
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 z-10 overflow-hidden">
+
+          <!-- Кольорова смужка пріоритету зверху -->
+          <div
+            class="h-1.5 w-full"
+            :style="{ backgroundColor: getPriorityColor(selectedTask?.priority) }"
+          />
+
+          <div class="p-6">
+            <!-- Шапка -->
+            <div class="flex items-start justify-between mb-5">
+              <h2 class="text-xl font-semibold text-gray-800 pr-4 leading-snug">
+                {{ selectedTask?.title }}
+              </h2>
+              <button
+                @click="closeModal"
+                class="text-gray-400 hover:text-gray-600 transition-colors text-2xl leading-none flex-shrink-0"
+              >
+                &times;
+              </button>
+            </div>
+
+            <!-- Поля -->
+            <dl class="space-y-3 text-sm">
+
+              <!-- Статус -->
+              <div class="flex items-center gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Статус</dt>
+                <dd>
+                  <span
+                    :class="selectedTask?.completed ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'"
+                    class="px-2.5 py-0.5 rounded-full font-medium"
+                  >
+                    {{ selectedTask?.completed ? '✓ Виконано' : '● В процесі' }}
+                  </span>
+                </dd>
+              </div>
+
+              <!-- Пріоритет -->
+              <div class="flex items-center gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Пріоритет</dt>
+                <dd>
+                  <span
+                    v-if="selectedTask?.priority"
+                    :class="priorityConfig[selectedTask.priority]?.class ?? 'bg-gray-100 text-gray-600'"
+                    class="px-2.5 py-0.5 rounded-full font-medium"
+                  >
+                    {{ priorityConfig[selectedTask.priority]?.label ?? selectedTask.priority }}
+                  </span>
+                  <span v-else class="text-gray-400">—</span>
+                </dd>
+              </div>
+
+              <!-- Категорія -->
+              <div class="flex items-center gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Категорія</dt>
+                <dd class="text-gray-700">
+                  {{ selectedTask?.category?.name ?? '—' }}
+                </dd>
+              </div>
+
+              <!-- Дата виконання -->
+              <div class="flex items-center gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Дата виконання</dt>
+                <dd class="text-gray-700">{{ formatDate(selectedTask?.dueDate) }}</dd>
+              </div>
+
+              <!-- Витрачений час -->
+              <div class="flex items-center gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Витрачений час</dt>
+                <dd class="text-gray-700">{{ selectedTask?.timeSpent ?? '—' }}</dd>
+              </div>
+
+              <!-- Опис -->
+              <div class="flex gap-3">
+                <dt class="w-36 text-gray-400 flex-shrink-0">Опис</dt>
+                <dd class="text-gray-700 leading-relaxed">
+                  {{ selectedTask?.description || '—' }}
+                </dd>
+              </div>
+
+              
+
+            </dl>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
-.calendar-container {
-  position: relative;
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-active .relative,
+.modal-leave-active .relative {
+  transition: transform 0.2s ease;
+}
+.modal-enter-from .relative,
+.modal-leave-to .relative {
+  transform: scale(0.95);
 }
 </style>

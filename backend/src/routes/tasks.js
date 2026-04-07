@@ -158,7 +158,7 @@ const taskValidation = [
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.get("/", getAllTasks);
+router.get("/", authenticate, getAllTasks);
 
 /**
  * @swagger

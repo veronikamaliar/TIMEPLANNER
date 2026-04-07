@@ -11,16 +11,22 @@ async function uploadFile(req, res) {
             });
         }
 
-        const file = await prisma.file.create({
-            data: {
-                filename: req.file.filename,
-                originalName: req.file.originalname,
-                mimetype: req.file.mimetype,
-                size: req.file.size,
-                path: req.file.path,
-                uploadedBy: req.user.userId
-            }
-        });
+        const userId = req.user?.id || req.user?.userId
+if (!userId) {
+  return res.status(401).json({ error: 'Користувача не знайдено' })
+}
+
+const file = await prisma.file.create({
+  data: {
+    filename: req.file.filename,
+    originalName: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size,
+    path: req.file.path.replace(/\\/g, '/'),
+    uploadedBy: userId,
+    taskId: req.body.taskId ? parseInt(req.body.taskId) : null,
+  }
+})
 
         res.status(201).json({
             message: 'Файл успішно завантажено',

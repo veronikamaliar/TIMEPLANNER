@@ -5,7 +5,12 @@ export interface Task {
   priority?: string
   dueDate?: string
   completed: boolean
-  timeSpent?: string
+  timeSpent?: number
   attachment?: string
   category?: { id: number; name: string } | null
+  user?: {
+  id: number;
+  name: string;
+  email: string;
+};
 }

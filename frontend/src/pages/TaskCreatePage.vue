@@ -9,12 +9,15 @@ import { useCategoriesStore } from '@/stores/categoriesStore'
 import { toast } from 'vue3-toastify'
 import Button from '@/components/common/Button.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
+import api from '@/services/api'
 
 const router = useRouter()
 const serverError = ref('')
 
 const tasksStore = useTasksStore()
 const categoriesStore = useCategoriesStore()
+
+
 
 onMounted(async () => {
   await categoriesStore.fetchCategories()
@@ -34,6 +37,16 @@ const { handleSubmit, errors } = useForm<TaskFormData>({
   },
 })
 
+const timeUnit = ref<'seconds' | 'minutes' | 'hours'>('minutes')
+
+function toSeconds(value: string | number, unit: string): number {
+  const n = Number(value)
+  if (!n) return 0
+  if (unit === 'minutes') return n * 60
+  if (unit === 'hours')   return n * 3600
+  return n // seconds
+}
+
 const onSubmit = handleSubmit(async (values) => {
   try {
     serverError.value = ''
@@ -46,13 +59,23 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (values.description?.trim()) payload.description = values.description
     if (values.dueDate) payload.dueDate = values.dueDate
-    if (values.timeSpent?.trim()) payload.timeSpent = values.timeSpent
-    if (values.attachment?.trim()) payload.attachment = values.attachment
+    if (values.timeSpent) payload.timeSpent = toSeconds(values.timeSpent, timeUnit.value)
     if (values.categoryId !== null) payload.categoryId = Number(values.categoryId)
 
-    console.log('Відправляємо на сервер:', payload)
+    // Спочатку створюємо task і отримуємо id
+    const newTask = await tasksStore.createTask(payload)
+    const taskId = newTask?.id
 
-    await tasksStore.createTask(payload)
+    // Потім завантажуємо файл з taskId
+    if (fileInput.value?.files?.[0] && taskId) {
+      const formData = new FormData()
+      formData.append('file', fileInput.value.files[0])
+      formData.append('taskId', String(taskId))
+      await api.post('/files/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+    }
+
     toast.success('Задачу успішно створено!')
     router.push('/dashboard/tasks')
   } catch (err: any) {
@@ -60,6 +83,28 @@ const onSubmit = handleSubmit(async (values) => {
     serverError.value = err.response?.data?.message || 'Помилка створення'
   }
 })
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const selectedFileName = ref('')
+
+// Функція, яка викликається при виборі файлу
+const onFileChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0]
+    selectedFileName.value = file.name
+    
+    // Тут логіка залежить від бекенду:
+    // 1. Якщо шлемо файл: values.attachment = file
+    // 2. Якщо шлемо URL: завантажуємо на сервер і отримуємо лінк
+  }
+}
+
+// Функція для очищення файлу
+const clearFile = () => {
+  selectedFileName.value = ''
+  if (fileInput.value) fileInput.value.value = ''
+}
 </script>
 
 <template>
@@ -99,21 +144,55 @@ const onSubmit = handleSubmit(async (values) => {
         <input type="date" v-bind="field" class="w-full border p-2 rounded" />
       </Field>
 
-      <Field name="timeSpent" v-slot="{ field }">
-        <input
-          v-bind="field"
-          class="w-full border p-2 rounded"
-          placeholder="Витрачений час"
-        />
-      </Field>
+     <Field name="timeSpent" v-slot="{ field }">
+  <div class="flex gap-2">
+    <input
+      v-bind="field"
+      type="number"
+      min="0"
+      class="w-full border p-2 rounded"
+      placeholder="Витрачений час"
+    />
+    <select v-model="timeUnit" class="border p-2 rounded w-32">
+      <option value="seconds">Секунди</option>
+      <option value="minutes">Хвилини</option>
+      <option value="hours">Години</option>
+    </select>
+  </div>
+</Field>
 
-      <Field name="attachment" v-slot="{ field }">
-        <input
-          v-bind="field"
-          class="w-full border p-2 rounded"
-          placeholder="URL або ім’я файлу"
-        />
-      </Field>
+      <Field name="attachment" v-slot="{ handleChange }">
+  <div class="space-y-2">
+    <label class="block text-sm font-medium text-brand-text-main">Вкладення</label>
+    
+    <div class="flex items-center gap-3">
+      <input
+        type="file"
+        ref="fileInput"
+        class="hidden"
+        @change="(e) => {
+          onFileChange(e);
+          // Передаємо файл у vee-validate (якщо треба валідувати розмір/тип)
+          handleChange((e.target as HTMLInputElement).files?.[0]);
+        }"
+      />
+
+      <button
+        type="button"
+        @click="fileInput?.click()"
+        class="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-brand-matcha-dark text-brand-text-main rounded-xl hover:bg-brand-matcha/30 transition-all"
+      >
+        <span>📎</span>
+        {{ selectedFileName ? 'Змінити файл' : 'Обрати файл' }}
+      </button>
+
+      <div v-if="selectedFileName" class="flex items-center gap-2 text-sm bg-brand-rose/40 px-3 py-1 rounded-lg border border-brand-rose-dark/30">
+        <span class="truncate max-w-[200px]">{{ selectedFileName }}</span>
+        <button type="button" @click="clearFile" class="text-rose-500 font-bold hover:scale-110">✕</button>
+      </div>
+    </div>
+  </div>
+</Field>
 
       <Field name="categoryId" v-slot="{ field }">
         <select v-bind="field" class="w-full border p-2 rounded">

@@ -1,5 +1,6 @@
 const express = require("express");
 const { body, param } = require("express-validator");
+const { authenticate } = require('../middleware/auth');
 const {
   getAllCategories,
   getCategoryById,
@@ -75,7 +76,7 @@ const categoryValidation = [
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.get("/", getAllCategories);
+router.get("/", authenticate, getAllCategories);
 
 
 /**
@@ -99,7 +100,7 @@ router.get("/", getAllCategories);
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.get("/:id", param("id").isInt(), getCategoryById);
+router.get("/:id", param("id").isInt(), authenticate, getCategoryById);
 
 /**
  * @swagger
@@ -128,7 +129,7 @@ router.get("/:id", param("id").isInt(), getCategoryById);
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.post("/", categoryValidation, createCategory);
+router.post("/", categoryValidation, authenticate, createCategory);
 
 /**
  * @swagger
@@ -166,7 +167,7 @@ router.post("/", categoryValidation, createCategory);
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.put("/:id", param("id").isInt(), categoryValidation, updateCategory);
+router.put("/:id", param("id").isInt(), categoryValidation, authenticate, updateCategory);
 
 /**
  * @swagger
@@ -189,6 +190,6 @@ router.put("/:id", param("id").isInt(), categoryValidation, updateCategory);
  *       500:
  *         description: Внутрішня помилка сервера
  */
-router.delete("/:id", param("id").isInt(), deleteCategory);
+router.delete("/:id", param("id").isInt(), authenticate, deleteCategory);
 
 module.exports = router;

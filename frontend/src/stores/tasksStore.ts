@@ -10,19 +10,22 @@ export const useTasksStore = defineStore('tasks', () => {
   const searchQuery = ref('')
 
   const fetchTasks = async () => {
+  try {
     loading.value = true
     error.value = null
 
-    try {
-      const res = await api.get('/tasks')
-      tasks.value = res.data.data ?? []
-    } catch (err: any) {
-      console.error('Fetch tasks error:', err)
-      error.value = 'Помилка завантаження задач'
-    } finally {
-      loading.value = false
-    }
+    const token = localStorage.getItem('token')
+    const { data } = await api.get('/tasks', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    tasks.value = data.data
+  } catch (err) {
+    error.value = 'Не вдалося завантажити завдання'
+  } finally {
+    loading.value = false
   }
+}
 
   const fetchTaskById = async (id: number) => {
   try {
@@ -34,33 +37,47 @@ export const useTasksStore = defineStore('tasks', () => {
   }
 }
 
-  const createTask = async (task: Omit<Task, 'id'>) => {
-    try {
-      console.log('Відправляємо на сервер:', task)
+const createTask = async (taskData: FormData | Omit<Task, 'id'>) => {
+  try {
+    loading.value = true
+    error.value = null
 
-      const res = await api.post('/tasks', task)
+    const res = await api.post('/tasks', taskData)
 
-      tasks.value.unshift(res.data.task)
+    const newTask = res.data.task || res.data
+    tasks.value.unshift(newTask)
 
-      return res.data.task
-    } catch (err: any) {
-      console.error('Create task error:', err)
-      error.value = err.response?.data?.error || 'Помилка створення задачі'
-      throw err
-    }
+    return newTask
+  } catch (err: any) {
+    console.error('Create task error:', err)
+    console.log('Деталі помилки 400:', err.response?.data)
+    
+    error.value = err.response?.data?.error || err.response?.data?.message || 'Помилка створення задачі'
+    throw err
+  } finally {
+    loading.value = false
   }
+}
 
   const updateTask = async (id: number, payload: Partial<Task>) => {
-    try {
-      const res = await api.put(`/tasks/${id}`, payload)
-      const index = tasks.value.findIndex(t => t.id === id)
-      if (index !== -1) tasks.value[index] = res.data
-      return res.data
-    } catch (err: any) {
-      console.error('Update task error:', err)
-      throw err
+  try {
+    const res = await api.put(`/tasks/${id}`, payload)
+    
+    const updatedData = res.data.task || res.data 
+
+    const index = tasks.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      tasks.value[index] = { 
+        ...tasks.value[index], 
+        ...updatedData 
+      }
     }
+    return tasks.value[index]
+  } catch (err: any) {
+    console.error('Update task error:', err)
+    throw err
   }
+}
 
   const deleteTask = async (id: number) => {
     try {

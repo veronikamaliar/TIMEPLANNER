@@ -6,7 +6,7 @@ export const taskSchema = z.object({
   priority: z.string().optional().nullable(),
   dueDate: z.string().optional().nullable(),
   completed: z.boolean().default(false),
-  timeSpent: z.string().optional().nullable(),
+  timeSpent: z.union([z.string(), z.number()]).optional(),
   attachment: z.any().optional().nullable(),
   categoryId: z.number().optional().nullable(),
 })

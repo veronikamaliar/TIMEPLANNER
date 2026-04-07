@@ -5,60 +5,44 @@ const redis = require("../redisClient");
 // Отримати всі завдання
 const getAllTasks = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, categoryId, priority, completed, sortBy = 'createdAt', order = 'desc' } = req.query;
+    const { page = 1, limit = 10, search, categoryId, priority, completed, sortBy = 'createdAt', order = 'desc' } = req.query
 
-    const cacheKey = `tasks:${page}:${limit}:${search || ''}:${categoryId || ''}:${priority || ''}:${completed || ''}:${sortBy}:${order}`;
+    const where = {}
 
-    const cachedData = await redis.get(cacheKey);
-    if (cachedData) {
-      return res.json(JSON.parse(cachedData));
+    if (req.user.role !== 'ADMIN') {
+      where.userId = req.user.id
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const where = {};
     if (search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ];
+        { title: { contains: search } },
+        { description: { contains: search } },
+      ]
     }
-    if (categoryId) where.categoryId = parseInt(categoryId);
-    if (priority) where.priority = priority;
-    if (completed !== undefined) where.completed = completed === 'true';
+    if (categoryId) where.categoryId = Number(categoryId)
+    if (priority)   where.priority = priority
+    if (completed !== undefined) where.completed = completed === 'true'
 
-    const orderBy = {};
-    orderBy[sortBy] = order;
+const [data, total] = await Promise.all([
+  prisma.task.findMany({
+    where,
+    skip: (page - 1) * limit,
+    take: Number(limit),
+    orderBy: { [sortBy]: order },
+    include: {
+      category: true,
+      user: { select: { id: true, name: true, email: true } },
+      files: true,
+    },
+  }),
+  prisma.task.count({ where }),
+])
 
-    const [tasks, total] = await Promise.all([
-      prisma.task.findMany({
-        where,
-        include: { category: true, user: { select: { id: true, name: true, email: true } } },
-        skip,
-        take: parseInt(limit),
-        orderBy
-      }),
-      prisma.task.count({ where })
-    ]);
-
-    const response = {
-      data: tasks,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        totalPages: Math.ceil(total / parseInt(limit)),
-        hasMore: skip + tasks.length < total
-      }
-    };
-
-    await redis.set(cacheKey, JSON.stringify(response), "EX", 600);
-
-    res.json(response);
-  } catch (error) {
-    console.error("Get tasks error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.json({ data, total, page: Number(page), limit: Number(limit) })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
-};
+}
 
 
 

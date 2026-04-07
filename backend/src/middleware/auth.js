@@ -1,4 +1,3 @@
-// auth.js
 const { verifyAccessToken } = require('../utils/jwt')
 
 function authenticate(req, res, next) {

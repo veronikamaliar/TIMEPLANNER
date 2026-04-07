@@ -43,12 +43,21 @@
 
       <!-- Час -->
       <Field name="timeSpent" v-slot="{ field }">
-        <input
-          v-bind="field"
-          class="w-full border p-2 rounded"
-          placeholder="Витрачений час"
-        />
-      </Field>
+  <div class="flex gap-2">
+    <input
+      v-bind="field"
+      type="number"
+      min="0"
+      class="w-full border p-2 rounded"
+      placeholder="Витрачений час"
+    />
+    <select v-model="timeUnit" class="border p-2 rounded w-32">
+      <option value="seconds">Секунди</option>
+      <option value="minutes">Хвилини</option>
+      <option value="hours">Години</option>
+    </select>
+  </div>
+</Field>
 
       <!-- Файл -->
       <Field name="attachment" v-slot="{ field }">
@@ -120,6 +129,7 @@ import { useTasksStore } from '@/stores/tasksStore'
 import { useCategoriesStore } from '@/stores/categoriesStore'
 import { toast } from 'vue3-toastify'
 import Button from '@/components/common/Button.vue'
+import { toSeconds, fromSeconds } from '@/utils/time'
 
 
 const route = useRoute()
@@ -130,6 +140,8 @@ const taskId = Number(route.params.id)
 const tasksStore = useTasksStore()
 const categoriesStore = useCategoriesStore()
 const serverError = ref('')
+
+const timeUnit = ref<'seconds' | 'minutes' | 'hours'>('minutes')
 
 const { handleSubmit, errors, setValues } = useForm<TaskFormData>({
   validationSchema: toTypedSchema(taskSchema),
@@ -145,15 +157,16 @@ const { handleSubmit, errors, setValues } = useForm<TaskFormData>({
   },
 })
 
-onMounted(async () => {
-  console.log('EDIT PAGE MOUNTED, ID =', taskId)
 
+
+onMounted(async () => {
   await categoriesStore.fetchCategories()
 
   const task = await tasksStore.fetchTaskById(taskId)
-  console.log('TASK FROM API:', task)
 
   if (!task) return
+
+  const time = fromSeconds(task.timeSpent || 0)
 
   setValues({
     title: task.title,
@@ -161,10 +174,12 @@ onMounted(async () => {
     priority: task.priority,
     dueDate: task.dueDate?.slice(0, 10) ?? '',
     completed: task.completed,
-    timeSpent: task.timeSpent ?? '',
+    timeSpent: time.value, // 👈 ВАЖЛИВО
     attachment: task.attachment ?? '',
     categoryId: task.category?.id ?? null,
   })
+
+  timeUnit.value = time.unit // 👈 ВАЖЛИВО
 })
 
 const onSubmit = handleSubmit(async (values) => {
@@ -179,7 +194,9 @@ const onSubmit = handleSubmit(async (values) => {
 
 if (values.description?.trim()) payload.description = values.description
 if (values.dueDate) payload.dueDate = values.dueDate
-if (values.timeSpent?.trim()) payload.timeSpent = Number(values.timeSpent)
+if (values.timeSpent?.toString().trim()) {
+  payload.timeSpent = toSeconds(values.timeSpent, timeUnit.value)
+}
 if (values.attachment?.trim()) payload.attachment = values.attachment
 if (values.categoryId !== null) payload.categoryId = Number(values.categoryId)
 

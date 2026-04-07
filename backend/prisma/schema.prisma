@@ -16,6 +16,7 @@ model User {
   role        Role          @default(USER)
   avatar      String?
   tasks       Task[]
+  categories Category[]
   timelogs    Timelog[]
   files       File[]
   resetToken         String?  
@@ -58,7 +59,11 @@ model Category {
   id    Int     @id @default(autoincrement())
   name  String
   tasks Task[]
+  userId Int?                                   
+  user   User?   @relation(fields: [userId], references: [id])
+ 
 
+  @@index([userId])
   @@index([name])
 }
 
