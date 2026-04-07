@@ -102,20 +102,14 @@ onMounted(loadTasks);
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <!-- Backdrop -->
+       
         <div class="absolute inset-0 bg-black/50" @click="closeModal" />
 
-        <!-- Вікно -->
         <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 z-10 overflow-hidden">
 
-          <!-- Кольорова смужка пріоритету зверху -->
-          <div
-            class="h-1.5 w-full"
-            :style="{ backgroundColor: getPriorityColor(selectedTask?.priority) }"
-          />
+          
 
           <div class="p-6">
-            <!-- Шапка -->
             <div class="flex items-start justify-between mb-5">
               <h2 class="text-xl font-semibold text-gray-800 pr-4 leading-snug">
                 {{ selectedTask?.title }}
@@ -128,10 +122,8 @@ onMounted(loadTasks);
               </button>
             </div>
 
-            <!-- Поля -->
             <dl class="space-y-3 text-sm">
 
-              <!-- Статус -->
               <div class="flex items-center gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Статус</dt>
                 <dd>
@@ -144,7 +136,6 @@ onMounted(loadTasks);
                 </dd>
               </div>
 
-              <!-- Пріоритет -->
               <div class="flex items-center gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Пріоритет</dt>
                 <dd>
@@ -159,7 +150,6 @@ onMounted(loadTasks);
                 </dd>
               </div>
 
-              <!-- Категорія -->
               <div class="flex items-center gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Категорія</dt>
                 <dd class="text-gray-700">
@@ -167,28 +157,22 @@ onMounted(loadTasks);
                 </dd>
               </div>
 
-              <!-- Дата виконання -->
               <div class="flex items-center gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Дата виконання</dt>
                 <dd class="text-gray-700">{{ formatDate(selectedTask?.dueDate) }}</dd>
               </div>
 
-              <!-- Витрачений час -->
               <div class="flex items-center gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Витрачений час</dt>
                 <dd class="text-gray-700">{{ selectedTask?.timeSpent ?? '—' }}</dd>
               </div>
 
-              <!-- Опис -->
               <div class="flex gap-3">
                 <dt class="w-36 text-gray-400 flex-shrink-0">Опис</dt>
                 <dd class="text-gray-700 leading-relaxed">
                   {{ selectedTask?.description || '—' }}
                 </dd>
               </div>
-
-              
-
             </dl>
           </div>
         </div>

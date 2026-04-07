@@ -44,7 +44,7 @@ function toSeconds(value: string | number, unit: string): number {
   if (!n) return 0
   if (unit === 'minutes') return n * 60
   if (unit === 'hours')   return n * 3600
-  return n // seconds
+  return n 
 }
 
 const onSubmit = handleSubmit(async (values) => {
@@ -62,11 +62,9 @@ const onSubmit = handleSubmit(async (values) => {
     if (values.timeSpent) payload.timeSpent = toSeconds(values.timeSpent, timeUnit.value)
     if (values.categoryId !== null) payload.categoryId = Number(values.categoryId)
 
-    // Спочатку створюємо task і отримуємо id
     const newTask = await tasksStore.createTask(payload)
     const taskId = newTask?.id
 
-    // Потім завантажуємо файл з taskId
     if (fileInput.value?.files?.[0] && taskId) {
       const formData = new FormData()
       formData.append('file', fileInput.value.files[0])
@@ -87,16 +85,11 @@ const onSubmit = handleSubmit(async (values) => {
 const fileInput = ref<HTMLInputElement | null>(null)
 const selectedFileName = ref('')
 
-// Функція, яка викликається при виборі файлу
 const onFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
     const file = target.files[0]
     selectedFileName.value = file.name
-    
-    // Тут логіка залежить від бекенду:
-    // 1. Якщо шлемо файл: values.attachment = file
-    // 2. Якщо шлемо URL: завантажуємо на сервер і отримуємо лінк
   }
 }
 
@@ -172,7 +165,6 @@ const clearFile = () => {
         class="hidden"
         @change="(e) => {
           onFileChange(e);
-          // Передаємо файл у vee-validate (якщо треба валідувати розмір/тип)
           handleChange((e.target as HTMLInputElement).files?.[0]);
         }"
       />

@@ -236,7 +236,6 @@ const handleForgotPassword = async () => {
               Продовжити
             </button>
 
-            <!-- Забули пароль -->
 <div class="text-center">
   <button
     type="button"

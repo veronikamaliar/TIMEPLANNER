@@ -13,33 +13,28 @@ onMounted(() => {
 
 const editTask = (id: number) => router.push(`/dashboard/tasks/update/${id}`)
 
-// Групуємо завдання за квадрантами
 const matrix = computed(() => {
   const tasks = tasksStore.filteredTasks.filter(t => !t.completed)
   const now = new Date()
   const twoDaysFromNow = new Date()
-  twoDaysFromNow.setDate(now.getDate() + 2) // Поріг "терміновості" — 2 дні
+  twoDaysFromNow.setDate(now.getDate() + 2) 
 
   return {
-    // 1. Терміново & Важливо: Високий пріоритет і дедлайн скоро
     do: tasks.filter(t => 
       t.priority === 'HIGH' && 
       t.dueDate && new Date(t.dueDate) <= twoDaysFromNow
     ),
 
-    // 2. Нетерміново & Важливо: Високий/Середній пріоритет, дедлайн далеко
     schedule: tasks.filter(t => 
       (t.priority === 'HIGH' || t.priority === 'MEDIUM') && 
       (!t.dueDate || new Date(t.dueDate) > twoDaysFromNow)
     ),
 
-    // 3. Терміново & Неважливо: Низький пріоритет, але дедлайн підтискає
     delegate: tasks.filter(t => 
       t.priority === 'LOW' && 
       t.dueDate && new Date(t.dueDate) <= twoDaysFromNow
     ),
 
-    // 4. Нетерміново & Неважливо: Низький пріоритет і дедлайн далеко
     eliminate: tasks.filter(t => 
       t.priority === 'LOW' && 
       (!t.dueDate || new Date(t.dueDate) > twoDaysFromNow)

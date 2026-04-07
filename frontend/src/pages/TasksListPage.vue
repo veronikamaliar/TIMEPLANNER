@@ -34,7 +34,6 @@ const onSearchChange = (value: string) => tasksStore.setSearchQuery(value)
 
 const toggleTaskStatus = async (task: any) => {
   try {
-    // Створюємо копію завдання з інвертованим статусом
     const updatedTask = { ...task, completed: !task.completed }
     await tasksStore.updateTask(task.id, updatedTask)
   } catch (err) {
@@ -42,20 +41,12 @@ const toggleTaskStatus = async (task: any) => {
   }
 }
 
-const onCreated = (task: any) => tasksStore.fetchTasks() // ✅ рефетч щоб не показувати чужі
+const onCreated = (task: any) => tasksStore.fetchTasks()
 const onUpdated = (task: any) => tasksStore.updateTask(task.id, task)
 const onDeleted = (id: number) => tasksStore.deleteTask(id)
 
 const canEdit = (task: any) => isAdmin() || task.userId === currentUserId
 
-const getPriorityClass = (priority: string) => {
-  switch (priority) {
-    case 'HIGH': return 'bg-red-100 text-red-600';
-    case 'MEDIUM': return 'bg-orange-100 text-orange-600';
-    case 'LOW': return 'bg-green-100 text-green-600';
-    default: return 'bg-gray-100 text-gray-600';
-  }
-}
 
 const formatTime = (seconds: number) => {
   if (!seconds) return '—'
@@ -222,12 +213,9 @@ const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 </template>
 
 
-
-
-
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
-  height: 6px; /* Висота горизонтального скролу */
+  height: 6px; 
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #e5e7eb;
@@ -237,7 +225,6 @@ const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
   background: #d1d5db;
 }
 
-/* Робимо так, щоб тінь липкої колонки виглядала красиво */
 .sticky {
   z-index: 10;
 }

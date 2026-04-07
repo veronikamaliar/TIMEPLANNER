@@ -45,32 +45,26 @@ const handleSave = async () => {
     formData.append('email', email.value)
     
     if (birthDate.value) {
-      // Переконайся, що дата відправляється у форматі, який розуміє база (ISO)
       formData.append('birthDate', new Date(birthDate.value).toISOString())
     }
     
     if (avatarFile.value) {
-      // Поле має називатися 'avatar' або 'file' залежно від налаштувань multer на бекенді
       formData.append('avatar', avatarFile.value)
     }
 
     const userId = authStore.user?.id
     if (!userId) throw new Error('Користувача не знайдено')
 
-    // ВІДПРАВКА
     const { data } = await api.put(`/users/${userId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     })
 
-    // ОНОВЛЕННЯ СТОРУ
-    // Якщо у тебе в authStore немає методу updateUser, 
-    // переконайся, що login не скидає токен.
     if (data.user) {
   authStore.login(data.user, authStore.token!)
-  localStorage.setItem('user', JSON.stringify(data.user)) // ← важливо
-  avatarPreview.value = getAvatarUrl(data.user.avatar)    // ← оновити превью
+  localStorage.setItem('user', JSON.stringify(data.user)) 
+  avatarPreview.value = getAvatarUrl(data.user.avatar)    
   successMessage.value = 'Профіль успішно оновлено'
   setTimeout(() => router.push('/dashboard/account'), 1500)
 }
@@ -95,7 +89,6 @@ const getAvatarUrl = (path: string | null) => {
   return `${baseUrl}/${path}`
 }
 
-// Ініціалізація превью
 const avatarPreview = ref<string | null>(
   authStore.user?.avatar ? getAvatarUrl(authStore.user.avatar) : null
 )

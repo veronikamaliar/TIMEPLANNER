@@ -44,12 +44,10 @@ const todayTasks = computed(() => {
 
   return allTasks.value.filter(t => {
     if (!t.dueDate) return false
-    // ✅ беремо тільки дату без часу і часового поясу
     return t.dueDate.startsWith(todayStr)
   })
 })
 
-// ✅ Bar — завдання поточного тижня по днях
 const barChartData = computed(() => {
   const counts = [0, 0, 0, 0, 0, 0, 0]
   const now = new Date()
@@ -83,24 +81,6 @@ const barChartData = computed(() => {
   }
 })
 
-// ✅ Pie — пріоритети
-const priorityChartData = computed(() => {
-  const tasks = allTasks.value
-  return {
-    labels: ['Низький', 'Середній', 'Високий'],
-    datasets: [{
-      data: [
-        tasks.filter(t => t.priority === 'LOW').length,
-        tasks.filter(t => t.priority === 'MEDIUM').length,
-        tasks.filter(t => t.priority === 'HIGH').length,
-      ],
-      backgroundColor: ['#34d399', '#fbbf24', '#fb7185'],
-      borderWidth: 0,
-    }]
-  }
-})
-
-// ✅ Doughnut — виконано vs невиконано
 const completionChartData = computed(() => ({
   labels: ['Виконано', 'В процесі'],
   datasets: [{
@@ -110,7 +90,6 @@ const completionChartData = computed(() => ({
   }]
 }))
 
-// ✅ Horizontal Bar — по категоріях
 const categoryChartData = computed(() => {
   const categoryMap: Record<string, number> = {}
 
@@ -161,7 +140,7 @@ const pieChartOptions = {
 
 const categoryChartOptions = {
   responsive: true,
-  indexAxis: 'y' as const, // ✅ горизонтальний бар
+  indexAxis: 'y' as const,
   plugins: { legend: { display: false } },
   scales: {
     x: {
@@ -174,7 +153,6 @@ const categoryChartOptions = {
   }
 }
 
-// ✅ Bar — витрачений час по днях тижня (в хвилинах)
 const timeSpentChartData = computed(() => {
   const minutes = [0, 0, 0, 0, 0, 0, 0]
 
@@ -196,7 +174,7 @@ const timeSpentChartData = computed(() => {
     if (taskDate < monday || taskDate > sunday) return
     const d = taskDate.getDay()
     const index = d === 0 ? 6 : d - 1
-    minutes[index] += Math.round(t.timeSpent / 60) // секунди → хвилини
+    minutes[index] += Math.round(t.timeSpent / 60) 
   })
 
   return {
@@ -236,7 +214,6 @@ const timeSpentChartOptions = {
   }
 }
 
-// ✅ Gauge — % виконання на сьогодні
 const todayProgress = computed(() => {
   const total = todayTasks.value.length
   const done = todayTasks.value.filter(t => t.completed).length
@@ -251,7 +228,7 @@ const gaugeChartData = computed(() => ({
     data: [todayProgress.value.percent, 100 - todayProgress.value.percent],
     backgroundColor: ['#f472b6', '#f3f4f6'],
     borderWidth: 0,
-    circumference: 180, // ✅ півкола
+    circumference: 180, 
     rotation: -90,
   }]
 }))
@@ -265,7 +242,6 @@ const gaugeChartOptions = {
   cutout: '75%',
 }
 
-// Таймер
 const activeTaskId = ref<number | null>(null)
 const timer = ref(0)
 let interval: any = null
@@ -315,17 +291,14 @@ const fetchTasks = async () => {
 
 const toggleTaskStatus = async (task: any) => {
   try {
-    // Оновлюємо локально для миттєвого фідбеку
     task.completed = !task.completed
     
     await api.put(`/tasks/${task.id}`, {
       ...task,
       completed: task.completed
     })
-    // Оновлюємо всі дані, щоб перерахувати статистику та графіки
     await fetchTasks()
   } catch (err) {
-    // Якщо помилка — повертаємо стан назад
     task.completed = !task.completed
     console.error('Помилка при оновленні статусу:', err)
   }
@@ -397,7 +370,7 @@ onMounted(fetchTasks)
               </div>
 
               <div v-else class="flex items-center gap-2 text-green-600 font-semibold text-sm">
-                <span>✓ Завдання завершено</span>
+                <span>Завдання завершено</span>
               </div>
             </div>
           </div>

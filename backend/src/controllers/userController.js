@@ -150,7 +150,7 @@ const updateUser = async (req, res) => {
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
       data: updateData,
-      select: {        // ← додай select щоб не повертати пароль
+      select: {      
         id: true,
         name: true,
         email: true,

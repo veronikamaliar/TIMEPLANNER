@@ -24,7 +24,6 @@ import UserUpdatePage from '@/pages/UserUpdatePage.vue'
 
 import EisenhowerMatrix from '@/pages/EisenhowerMatrix.vue'
 
-import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 
 import AccountEdit from '@/pages/AccountEdit.vue'
 
