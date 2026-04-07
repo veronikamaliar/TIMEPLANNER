@@ -51,7 +51,7 @@ const allowedOrigins = [
   "http://127.0.0.1:5500",
   "http://localhost:5500",
   "http://localhost:5173",
-  'https://time-app-liart.vercel.app',
+  'time-planner-app-lk9k.vercel.app',
 ];
 
 app.use(
