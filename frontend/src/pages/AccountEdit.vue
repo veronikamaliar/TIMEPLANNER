@@ -89,7 +89,10 @@ const handleCancel = () => {
 const getAvatarUrl = (path: string | null) => {
   if (!path) return null
   if (path.startsWith('blob:')) return path
-  return `http://localhost:3000/${path}`
+  
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+  
+  return `${baseUrl}/${path}`
 }
 
 // Ініціалізація превью

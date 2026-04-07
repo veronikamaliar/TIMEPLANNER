@@ -83,6 +83,8 @@ const handleForgotPassword = async () => {
     isSendingReset.value = false
   }
 }
+
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 </script>
 
 <template>
@@ -94,9 +96,9 @@ const handleForgotPassword = async () => {
       <div class="flex flex-col items-center space-y-3">
         <div v-if="authStore.user?.avatar" class="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200">
           <img
-            :src="`http://localhost:3000/${authStore.user.avatar}`"
-            class="w-full h-full object-cover"
-          />
+  :src="`${apiBaseUrl}/${authStore.user.avatar}`"
+  class="w-full h-full object-cover"
+/>
         </div>
         <div v-else class="w-20 h-20 rounded-full bg-gray-400 flex items-center justify-center text-2xl font-bold text-white">
           {{ authStore.user?.name?.charAt(0) || 'U' }}

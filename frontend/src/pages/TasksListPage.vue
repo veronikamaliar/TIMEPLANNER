@@ -66,6 +66,8 @@ const formatTime = (seconds: number) => {
   if (m > 0) return `${m}хв ${s}с`
   return `${s}с`
 }
+
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 </script>
 
 <template>
@@ -170,12 +172,12 @@ const formatTime = (seconds: number) => {
   <template v-if="task.files?.length">
     <div class="flex flex-col gap-1">
       <a
-        v-for="file in task.files"
-        :key="file.id"
-        :href="`http://localhost:3000/${file.path}`"
-        target="_blank"
-        class="flex items-center gap-1 text-pink-500 hover:underline text-xs"
-      >
+  v-for="file in task.files"
+  :key="file.id"
+  :href="`${apiBaseUrl}/${file.path}`"
+  target="_blank"
+  class="flex items-center gap-1 text-pink-500 hover:underline text-xs"
+>
         <span class="truncate max-w-[120px]">
           {{ file.originalName }}
         </span>
