@@ -2,12 +2,12 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx}", // Прибрав пробіл після коми (теж міг бути баг)
+    "./src/**/*.{vue,js,ts,jsx,tsx}", 
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Montserrat Alternates', 'sans-serif']
+        sans: ['Montserrat', 'sans-serif']
       },
       colors: {
         brand: {

@@ -44,10 +44,10 @@ const matrix = computed(() => {
 
 const getCardClass = (type: string) => {
   switch (type) {
-    case 'do': return 'border-t-4 border-rose-500 bg-rose-50/30'
-    case 'schedule': return 'border-t-4 border-amber-500 bg-amber-50/30'
-    case 'delegate': return 'border-t-4 border-emerald-500 bg-emerald-50/30'
-    case 'eliminate': return 'border-t-4 border-gray-400 bg-gray-50/30'
+    case 'do': return 'bg-pink-100'
+    case 'schedule': return 'bg-yellow-100'
+    case 'delegate': return 'bg-green-100'
+    case 'eliminate': return 'bg-gray-100'
     default: return ''
   }
 }
@@ -66,15 +66,15 @@ const getCardClass = (type: string) => {
       
       <div :class="getCardClass('do')" class="flex flex-col rounded-xl shadow-sm border p-4">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="font-bold text-rose-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-            Зробити (High)
+          <h2 class="font-bold text-pink-700 uppercase tracking-wider flex items-center gap-2">
+            
+            Зробити
           </h2>
-          <span class="text-xs font-semibold bg-rose-100 text-rose-600 px-2 py-1 rounded">Терміново & Важливо</span>
+          <span class="text-xs font-semibold text-red-600 px-2 py-1 rounded">Терміново і Важливо</span>
         </div>
         <div class="flex-1 space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar">
           <div v-for="task in matrix.do" :key="task.id" @click="editTask(task.id)"
-            class="p-3 bg-white border rounded-lg hover:shadow-md cursor-pointer transition-all border-rose-100">
+            class="p-3 bg-white border rounded-lg  cursor-pointer transition-all border-rose-100">
             <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
             <p v-if="task.dueDate" class="text-[10px] text-rose-500 mt-1">До: {{ new Date(task.dueDate).toLocaleDateString() }}</p>
           </div>
@@ -84,49 +84,46 @@ const getCardClass = (type: string) => {
 
       <div :class="getCardClass('schedule')" class="flex flex-col rounded-xl shadow-sm border p-4">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-            Запланувати (Medium)
+          <h2 class="font-bold text-yellow-700 uppercase tracking-wider flex items-center gap-2">
+            Запланувати
           </h2>
-          <span class="text-xs font-semibold bg-amber-100 text-amber-600 px-2 py-1 rounded">Нетерміново & Важливо</span>
+          <span class="text-xs font-semibold text-yellow-600 px-2 py-1 rounded">Нетерміново і Важливо</span>
         </div>
         <div class="flex-1 space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar">
           <div v-for="task in matrix.schedule" :key="task.id" @click="editTask(task.id)"
-            class="p-3 bg-white border rounded-lg hover:shadow-md cursor-pointer transition-all border-amber-100">
+            class="p-3 bg-white border rounded-lg  cursor-pointer transition-all border-yellow-100">
             <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
           </div>
-          <div v-if="!matrix.schedule.length" class="text-gray-400 text-center py-10 text-sm italic">Поки пусто</div>
+          <div v-if="!matrix.schedule.length" class="text-gray-400 text-center py-10 text-sm italic">Немає завдань</div>
         </div>
       </div>
 
       <div :class="getCardClass('delegate')" class="flex flex-col rounded-xl shadow-sm border p-4">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Делегувати (Low)
+          <h2 class="font-bold text-green-700 uppercase tracking-wider flex items-center gap-2">
+            Делегувати
           </h2>
-          <span class="text-xs font-semibold bg-emerald-100 text-emerald-600 px-2 py-1 rounded">Терміново & Неважливо</span>
+          <span class="text-xs font-semibold text-green-600 px-2 py-1 rounded">Терміново і Неважливо</span>
         </div>
         <div class="flex-1 space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar">
           <div v-for="task in matrix.delegate" :key="task.id" @click="editTask(task.id)"
-            class="p-3 bg-white border rounded-lg hover:shadow-md cursor-pointer transition-all border-emerald-100">
+            class="p-3 bg-white border rounded-lg  cursor-pointer transition-all border-green-100">
             <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
           </div>
-          <div v-if="!matrix.delegate.length" class="text-gray-400 text-center py-10 text-sm italic">Вільний сектор</div>
+          <div v-if="!matrix.delegate.length" class="text-gray-400 text-center py-10 text-sm italic">Немає завдань</div>
         </div>
       </div>
 
       <div :class="getCardClass('eliminate')" class="flex flex-col rounded-xl shadow-sm border p-4">
         <div class="flex justify-between items-center mb-4">
           <h2 class="font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-gray-400"></span>
-            Видалити / Потім
+            Видалити
           </h2>
-          <span class="text-xs font-semibold bg-gray-200 text-gray-600 px-2 py-1 rounded">Нетерміново & Неважливо</span>
+          <span class="text-xs font-semibold text-gray-600 px-2 py-1 rounded">Нетерміново і Неважливо</span>
         </div>
         <div class="flex-1 space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar">
           <div v-for="task in matrix.eliminate" :key="task.id" @click="editTask(task.id)"
-            class="p-3 bg-white border rounded-lg hover:shadow-md cursor-pointer transition-all border-gray-200">
+            class="p-3 bg-white border rounded-lg  cursor-pointer transition-all border-gray-200">
             <h3 class="font-medium text-gray-800">{{ task.title }}</h3>
           </div>
           <div v-if="!matrix.eliminate.length" class="text-gray-400 text-center py-10 text-sm italic">Чисто</div>
